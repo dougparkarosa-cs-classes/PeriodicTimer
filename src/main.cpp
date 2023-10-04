@@ -1,5 +1,17 @@
 #include <Arduino.h>
 
+class Timer {
+ public:
+  using TickType = unsigned long;
+  static const TickType TicksPerSecond = 1000000;
+  Timer() : mStartMicros(micros()) {}
+
+  TickType elapsedTime() const { return micros() - mStartMicros; }
+
+ private:
+  TickType mStartMicros;
+};
+
 // Class to wrap up a call back function
 // that will be called periodically.
 
@@ -13,7 +25,7 @@ class PeriodicTimer {
   using TickType = unsigned long;
   static const TickType TicksPerSecond = 1000000;
 
-  PeriodicTimer(CallBack callback, unsigned long callDeltaMicros)
+  PeriodicTimer(CallBack callback, TickType callDeltaMicros)
       : mCallback(callback),
         mStartMicros(micros()),
         mCallDeltaMicros(callDeltaMicros) {}
@@ -33,8 +45,8 @@ class PeriodicTimer {
 
  private:
   CallBack mCallback;
-  unsigned long mStartMicros;
-  unsigned long mCallDeltaMicros;
+  TickType mStartMicros;
+  TickType mCallDeltaMicros;
 };
 
 void setup() { Serial.begin(9600); }
@@ -61,6 +73,10 @@ PeriodicTimer counterA(countA, intervalA);
 PeriodicTimer counterB(countB, intervalB);
 
 void loop() {
+  Timer timer;
   counterA.tick();
   counterB.tick();
+  Serial.print("Calling counters took: ");
+  Serial.print(timer.elapsedTime());
+  Serial.println(" uS.");
 }
